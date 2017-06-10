@@ -1,0 +1,7 @@
+#!/bin/sh
+
+killall -9 smsd
+#nohup smsd &
+nohup smsd >> ./var/log/sms/smsd.log &
+
+#tail -f nohup.out

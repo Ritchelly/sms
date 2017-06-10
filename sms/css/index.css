@@ -1,0 +1,20 @@
+#txt-sms-read{
+    min-width: 300px;
+    max-width: 500px;
+    width: 80%;
+    height: 150px;
+}
+
+.row-center{
+    text-align: center;
+}
+.col-center{
+    text-align: center;
+}
+
+#div-sms-read-container{
+
+    height: 180px;
+    text-align: center;
+
+}

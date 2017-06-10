@@ -1,0 +1,87 @@
+#!/usr/bin/php -q
+<?php
+//include_once('../db/db.php');
+
+include_once('/var/www/html/sms/db/db.php');
+
+$username = 'reqvirtual';
+$secret = 'reqvirtual';
+set_time_limit(0);
+
+$fp = fsockopen("localhost", 5038, $errno, $errstr, 30);
+
+
+    fputs($fp, "Action: Login\r\n");
+    fputs($fp, "UserName:$username\r\n");
+    fputs($fp, "Secret: $secret\r\n\r\n");
+
+$wrets = array();
+$line = '';
+$x=0;
+
+while(1) {
+
+	
+//    echo "teste".$x++.PHP_EOL ;	
+	
+    unset($wrets);
+		
+    $read = fread($fp,1); 
+    $line .= $read;
+
+    //Fim de Linha
+    if ("\n" == $read) 
+	{
+        	$event_separator = false;
+
+		//Fim de Bloco
+        	if ("\r\n" == $line) 
+		{
+           		$event_separator = true;
+		        //echo('---------------------------------');			    
+        	}
+		$line= str_replace(' ','',strtolower(trim($line)));
+		if($line=='event:donglesmsstatus')
+		{
+		        //echo $line.PHP_EOL;
+			$wrets[0]=$line;
+			for($i=1;$i<9;$i++)
+			{
+			   $wrets[$i]=str_replace(' ','',strtolower(trim(fgets($fp, 128))));
+			}
+		}	
+
+	if(isset($wrets))
+	{
+		
+		
+		$sms_id=explode(':',$wrets[7]);
+		$sms_status=explode(':',$wrets[8]);
+		
+		
+	//	echo '---------'.$sms_status[1].'---'.PHP_EOL; 
+		($sms_status[1]=='sent'?$sms_status=1:$sms_status=2);
+	//	echo $sms_status;
+	//	echo $sms_id[1].'-------'.$sms_status.'-----'.PHP_EOL;
+		
+		$data =date('d-m-Y H:i:s');
+		
+		$log="[".$data."]"." - SMS ID :". $sms_id[1]." - SMS Status : ". $sms_status  .PHP_EOL;
+		
+		echo $log ;
+		
+		
+		$db= new DB();	
+		$query="update sms_list  set send_response=".$sms_status." where send_id='".$sms_id[1]."'";
+		$stmt=$db->prepare($query);
+		//$stmt->bindParam(':sms_id',$sms_id);
+		$stmt->execute();
+
+//		print_r($wrets);
+		flush($fp);
+	}
+        $line = '';
+    }
+}
+fclose($fp);
+?>

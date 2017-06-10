@@ -1,0 +1,41 @@
+#!/usr/bin/php -q
+<?php
+
+$username = 'reqvirtual';
+$secret = 'reqvirtual';
+set_time_limit(0);
+$fp = fsockopen("localhost", 5038, $errno, $errstr, 30);
+    fputs($fp, "Action: Login\r\n");
+    fputs($fp, "UserName:$username\r\n");
+    fputs($fp, "Secret: $secret\r\n\r\n");
+
+$event_array = array();
+$line = '';
+while(1) {
+    $read = fread($fp,1); 
+    $line .= $read;
+
+    //Fim de Linha
+    if ("\n" == $read) 
+	{
+        	$event_separator = false;
+
+		//Fim de Bloco
+        	if ("\r\n" == $line) 
+		{
+           		$event_separator = true;
+		        //echo('---------------------------------');			    
+        	}
+		//$line= str_replace(' ','',strtolower(trim($line)));
+		if($line=='event:userevent')
+		{
+		         //echo $line.PHP_EOL;
+			//echo fread($fp,128);
+		}	
+	echo $line;
+        flush($fp);
+        $line = '';
+    }
+}
+fclose($fp);
+?>
